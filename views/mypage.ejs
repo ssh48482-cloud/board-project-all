@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title>마이페이지 - 종합 관리</title>
+  <style>
+    body {
+      font-family: 'Malgun Gothic', sans-serif;
+      margin: 40px;
+      line-height: 1.6;
+      background-color: #f1f5f9;
+      color: #1e293b;
+    }
+    .container {
+      max-width: 900px;
+      margin: 0 auto;
+    }
+    h1 {
+      color: #0f172a;
+      margin-bottom: 30px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .section {
+      background: white;
+      margin-bottom: 30px;
+      padding: 25px;
+      border-radius: 12px;
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+      border: 1px solid #e2e8f0;
+    }
+    h2 {
+      font-size: 1.25rem;
+      border-bottom: 2px solid #3b82f6;
+      padding-bottom: 10px;
+      margin-bottom: 20px;
+      color: #1e40af;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+    th, td {
+      padding: 12px;
+      border-bottom: 1px solid #f1f5f9;
+      text-align: left;
+    }
+    th {
+      background-color: #f8fafc;
+      color: #64748b;
+      font-weight: 600;
+    }
+    .status-badge {
+      padding: 4px 8px;
+      border-radius: 20px;
+      font-size: 0.85em;
+      background-color: #dcfce7;
+      color: #166534;
+    }
+    input[type="text"] {
+      padding: 10px;
+      width: 250px;
+      border: 1px solid #cbd5e1;
+      border-radius: 6px;
+      margin-right: 10px;
+    }
+    .btn {
+      padding: 10px 20px;
+      background-color: #3b82f6;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: bold;
+      transition: background 0.2s;
+    }
+    .btn:hover {
+      background-color: #1d4ed8;
+    }
+    .empty-msg {
+      padding: 20px 0;
+      color: #94a3b8;
+      text-align: center;
+    }
+    a {
+      color: #3b82f6;
+      text-decoration: none;
+    }
+    a:hover {
+      text-decoration: underline;
+    }
+    .nav-links {
+      margin-bottom: 20px;
+    }
+    /* 회원탈퇴 영역 스타일 */
+    .withdrawal-section {
+      margin-top: 50px;
+      padding: 20px;
+      border-top: 1px dotted #cbd5e1;
+      text-align: right;
+    }
+    .btn-withdraw {
+      color: #ef4444;
+      font-size: 0.9em;
+      text-decoration: underline;
+      cursor: pointer;
+      background: none;
+      border: none;
+    }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <h1>👤 마이페이지</h1>
+
+  <div class="nav-links">
+    <a href="./">🏠 홈으로 가기</a> |
+    <a href="./products">🍎 상품목록</a> |
+    <a href="./board">📋 고객센터</a>
+    <% if (user && user.is_admin === 1) { %>
+      | <a href="./admin" style="color: #ef4444; font-weight: bold;">⚙️ 관리자 모드</a>
+    <% } %>
+  </div>
+
+  <div class="section">
+    <h2>🔒 내 정보 관리</h2>
+    <form action="./mypage/update" method="POST">
+      <div style="margin-bottom: 15px;">
+        <span style="color: #64748b;">아이디:</span>
+        <strong style="margin-left: 10px;"><%= user.username %></strong>
+        <% if (user.is_admin === 1) { %>
+          <span style="margin-left: 10px; color: #ef4444; font-weight: bold;">[관리자 계정]</span>
+        <% } %>
+      </div>
+
+      <label for="name" style="display: block; margin-bottom: 8px; color: #64748b;">이름 수정:</label>
+      <input type="text" id="name" name="name" value="<%= user.name %>" required>
+      <button type="submit" class="btn">변경 저장</button>
+    </form>
+  </div>
+
+  <div class="section">
+    <h2>⭐ 위시리스트</h2>
+    <% if (typeof wishlist !== 'undefined' && wishlist.length > 0) { %>
+      <table>
+        <thead>
+          <tr>
+            <th>상품</th>
+            <th>상품명</th>
+            <th>가격</th>
+            <th>관리</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% wishlist.forEach(item => { %>
+            <tr>
+              <td style="font-size: 1.5em;"><%= item.emoji %></td>
+              <td><%= item.name %></td>
+              <td>₩<%= item.price.toLocaleString() %></td>
+              <td><a href="./wishlist/remove/<%= item.id %>" style="color: #ef4444;">삭제</a></td>
+            </tr>
+          <% }) %>
+        </tbody>
+      </table>
+    <% } else { %>
+      <p class="empty-msg">찜한 상품이 없습니다. 마음에 드는 과일을 찜해보세요!</p>
+    <% } %>
+  </div>
+
+  <div class="section">
+    <h2>🛍️ 나의 주문 내역</h2>
+    <% if (typeof orders !== 'undefined' && orders.length > 0) { %>
+      <table>
+        <thead>
+          <tr>
+            <th>주문 번호</th>
+            <th>주문 일시</th>
+            <th>결제 금액</th>
+            <th>상태</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% orders.forEach(order => { %>
+            <tr>
+              <td>#<%= order.id %></td>
+              <td><%= order.created_at %></td>
+              <td><strong>₩<%= order.total_price.toLocaleString() %></strong></td>
+              <td><span class="status-badge"><%= order.status %></span></td>
+            </tr>
+          <% }) %>
+        </tbody>
+      </table>
+    <% } else { %>
+      <p class="empty-msg">최근 주문한 내역이 없습니다.</p>
+    <% } %>
+  </div>
+
+  <div class="section">
+    <h2>📝 내 문의 내역</h2>
+    <% if (typeof posts !== 'undefined' && posts.length > 0) { %>
+      <table>
+        <thead>
+          <tr>
+            <th style="width: 15%;">번호</th>
+            <th>제목</th>
+            <th>날짜</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% posts.forEach(post => { %>
+            <tr>
+              <td><%= post.id %></td>
+              <td><a href="./board/view/<%= post.id %>"><%= post.title %></a></td>
+              <td style="font-size: 0.85em; color: #94a3b8;"><%= post.created_at.split(' ')[0] %></td>
+            </tr>
+          <% }) %>
+        </tbody>
+      </table>
+    <% } else { %>
+      <p class="empty-msg">작성한 문의글이 없습니다. 궁금한 점은 고객센터를 이용해주세요.</p>
+    <% } %>
+  </div>
+
+  <div class="withdrawal-section">
+    <p style="color: #94a3b8; font-size: 0.85em; margin-bottom: 5px;">더 이상 서비스를 이용하지 않으시나요?</p>
+    <a href="./user/withdraw" class="btn-withdraw"
+       onclick="return confirm('정말 탈퇴하시겠습니까?\n탈퇴 시 주문 내역과 위시리스트가 모두 삭제되며 복구할 수 없습니다.')">
+       회원 탈퇴하기
+    </a>
+  </div>
+
+</div>
+
+</body>
+</html>
